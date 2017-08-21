@@ -11,56 +11,46 @@ public class Buffer {
     private int maxSize = 10;
 
     public Object get() throws InterruptedException {
-        boolean flag = false;
-        Object obj = null;
         Synchronized:
         synchronized (list) {
             if (list.isEmpty()) {
-                flag = true;
                 break Synchronized;
             }
-            obj = list.get(0);
+            Object obj = list.get(0);
             list.remove(0);
             System.out.format("\n- %-10s %s", obj.toString(), Arrays.toString(list.toArray()));
-        }
-        if (flag) {
-            synchronized (consumerLock) {
-                if (list.isEmpty()) {
-                    consumerLock.wait();
-                }
-            }
-            return get();
-        } else {
             synchronized (producerLock) {
                 producerLock.notify();
             }
             return obj;
         }
+        synchronized (consumerLock) {
+            if (list.isEmpty()) {
+                consumerLock.wait();
+            }
+        }
+        return get();
     }
 
     public void put(Object object) throws InterruptedException {
-        boolean flag = false;
         Synchronized:
         synchronized (list) {
             if (list.size() >= maxSize) {
-                flag = true;
                 break Synchronized;
             }
             list.add(object);
             System.out.format("\n+ %-10s %s", object.toString(), Arrays.toString(list.toArray()));
-        }
-        if (flag) {
-            synchronized (producerLock) {
-                if (list.size() >= maxSize) {
-                    producerLock.wait();
-                }
-            }
-            put(object);
-        } else {
             synchronized (consumerLock) {
                 consumerLock.notify();
             }
+            return;
         }
+        synchronized (producerLock) {
+            if (list.size() >= maxSize) {
+                producerLock.wait();
+            }
+        }
+        put(object);
     }
 
     public Buffer() {
