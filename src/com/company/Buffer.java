@@ -1,7 +1,6 @@
 package com.company;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,14 +13,13 @@ public class Buffer {
     public Object get() throws InterruptedException {
         boolean flag = false;
         Object obj = null;
-        l:
+        Synchronized:
         synchronized (list) {
-            Iterator iterator = list.iterator();
             if (list.isEmpty()) {
                 flag = true;
-                break l;
+                break Synchronized;
             }
-            obj = iterator.next();
+            obj = list.get(0);
             list.remove(0);
             System.out.format("\n- %-10s %s", obj.toString(), Arrays.toString(list.toArray()));
         }
@@ -42,11 +40,11 @@ public class Buffer {
 
     public void put(Object object) throws InterruptedException {
         boolean flag = false;
-        l:
+        Synchronized:
         synchronized (list) {
             if (list.size() >= maxSize) {
                 flag = true;
-                break l;
+                break Synchronized;
             }
             list.add(object);
             System.out.format("\n+ %-10s %s", object.toString(), Arrays.toString(list.toArray()));
@@ -78,11 +76,11 @@ public class Buffer {
 
     public void setMaxSize(int maxSize) {
         int oldMaxSize = this.maxSize;
-        if (maxSize>0) {
+        if (maxSize > 0) {
             this.maxSize = maxSize;
         }
-        if (oldMaxSize<maxSize){
-            synchronized (producerLock){
+        if (oldMaxSize < maxSize) {
+            synchronized (producerLock) {
                 producerLock.notifyAll();
             }
         }
