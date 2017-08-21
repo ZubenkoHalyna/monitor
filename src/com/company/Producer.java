@@ -3,19 +3,19 @@ package com.company;
 public class Producer extends Thread{
     private Buffer buffer;
     private int interval;
-    private int startValue;
+    private int value;
 
     public Producer(Buffer buffer, int interval, int startValue) {
         this.buffer = buffer;
         this.interval = interval;
-        this.startValue = startValue;
+        this.value = startValue;
     }
 
     @Override
     public void run() {
-        for (int i = startValue; ; i++) {
+        while (true) {
             try {
-                buffer.put(i);
+                buffer.put(value++);
                 sleep(interval);
             } catch (InterruptedException e) {
                 e.printStackTrace();
